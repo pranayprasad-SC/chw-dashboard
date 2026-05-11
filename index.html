@@ -87,7 +87,6 @@ textarea:focus{border-color:#111}
   <div class="tr">
     <div class="live" id="live"><span class="dot"></span>Live</div>
     <button class="btn" onclick="exportCSV()">↓ Export CSV</button>
-    <button class="btn btk" onclick="togglePanel()">⇄ Connect / Refresh</button>
   </div>
 </div>
 
@@ -111,7 +110,7 @@ textarea:focus{border-color:#111}
   </div>
 </div>
 
-<div class="cpw" id="cpw">
+<div class="cpw" id="cpw" style="display:none">
   <div class="cp">
     <h3>Connect your Google Sheet</h3>
     <p>Paste your Apps Script Web App URL. Make sure your new deployment returns <strong>cols:30</strong> when opened in browser.</p>
@@ -660,10 +659,9 @@ function exportCSV(){
   a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
   a.download='chw_ops_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
-function togglePanel(){const p=document.getElementById('cpw');p.style.display=p.style.display==='none'?'block':'none';}
 
-const saved=localStorage.getItem('chw_url')||'';
-if(saved){document.getElementById('url').value=saved;fetchUrl();}
+const saved='https://script.google.com/macros/s/AKfycbxQqYU9hSkXj6U10EvUzADDgsg05pNStY7htPCbM68vPb6hE5ztjyCzE2UNzVVTGHDdWQ/exec';
+fetchUrl();
 </script>
 </body>
 </html>
