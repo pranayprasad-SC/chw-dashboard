@@ -40,13 +40,7 @@ html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fon
 textarea{width:100%;font-size:11px;font-family:monospace;padding:9px;border:1px solid #E0E0E0;border-radius:7px;background:#FAFAFA;resize:vertical;min-height:80px;outline:none}
 textarea:focus{border-color:#111}
 .em{font-size:11px;color:#DC2626;margin-top:5px;display:none}
-.diag{display:none;margin:10px 24px 0;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 16px}
 .diag h4{font-size:11px;font-weight:600;color:#92400E;margin-bottom:8px}
-.dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px}
-.di{background:#fff;border:1px solid #FDE68A;border-radius:7px;padding:7px 10px}
-.dl{font-size:9px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
-.dv{font-size:14px;font-weight:700;color:#111}
-.ds{font-size:9px;color:#AAA;margin-top:1px}
 .content{padding:20px 24px}
 .sh{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
 .stt{font-size:10px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.09em}
@@ -126,9 +120,6 @@ textarea:focus{border-color:#111}
   </div>
 </div>
 
-<div class="diag" id="diag">
-  <h4>Data verification — cross-check against your sheet</h4>
-  <div class="dg" id="dg"></div>
 </div>
 
 <div class="content">
@@ -416,30 +407,6 @@ function compute(data) {
          valid,pending,submitted,tatCount:tatPairs.length};
 }
 
-/* ── DIAGNOSTIC ── */
-function showDiag(raw, data){
-  const v=data.filter(r=>r.provision>0);
-  const p=v.filter(r=>!r.invSub);
-  const s=v.filter(r=>!!r.invSub);
-  const hIdx=findHeaderRow(raw);
-  const items=[
-    {l:'JSON rows',     v:raw.length,   s:'total objects in data[]'},
-    {l:'Header row',    v:hIdx>=0?'Row '+hIdx:'Not found', s:'contains "Provision Amount"'},
-    {l:'Valid records', v:v.length,     s:'Col I (col_8) > 0'},
-    {l:'Submitted',     v:s.length,     s:'Col U (col_20) = past date'},
-    {l:'Pending',       v:p.length,     s:'Col U blank or future date'},
-    {l:'Sub rate',      v:v.length?Math.round(s.length/v.length*100)+'%':'—', s:'Card 5'},
-    {l:'Total prov',    v:fmtINR(v.reduce((a,r)=>a+r.provision,0)), s:'SUM Col I'},
-    {l:'Unbilled',      v:fmtINR(p.reduce((a,r)=>a+r.provision,0)), s:'pending SUM Col I'},
-    {l:'Col K dates',   v:v.filter(r=>r.provDate).length,  s:'Provision Date found'},
-    {l:'Col Y data',    v:v.filter(r=>r.pendWith).length,  s:'Pending With found'},
-    {l:'Col Z data',    v:v.filter(r=>r.reason).length,    s:'Not Billed Reason found'},
-  ];
-  document.getElementById('dg').innerHTML=items.map(i=>
-    `<div class="di"><div class="dl">${i.l}</div><div class="dv">${i.v}</div><div class="ds">${i.s}</div></div>`
-  ).join('');
-  document.getElementById('diag').style.display='block';
-}
 
 /* ── RENDER ── */
 let charts={};
@@ -584,7 +551,6 @@ function loadRows(rows){
   RAW_JSON=rows;
   const data=transform(rows);
   const valid=data.filter(r=>r.provision>0);
-  showDiag(rows,data);
   if(!valid.length){
     /* Show diagnostic to help debug, but don't hide panel */
     document.getElementById('cst').className='cst err';
@@ -606,25 +572,20 @@ function loadRows(rows){
 function setSt(t,m){const el=document.getElementById('cst');el.className='cst '+t;el.textContent=m;}
 
 async function fetchUrl(){
-  const url=document.getElementById('url').value.trim();
-  if(!url){setSt('err','Paste your Apps Script URL first.');return;}
-  localStorage.setItem('chw_url',url);
-  setSt('loading','Connecting…');
+  const url=APPS_SCRIPT_URL;
   try{
     const res=await fetch(url,{mode:'cors',cache:'no-cache'});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const json=await res.json();
     const rows=json.data||(Array.isArray(json)?json:[]);
     if(!rows.length)throw new Error('No rows returned');
-    const cols=json.cols||Object.keys(rows[0]).filter(k=>/^col_\d+$/.test(k)).length;
-    setSt('ok','✓ Connected — '+rows.length+' rows · '+cols+' columns. Check yellow panel below.');
     loadRows(rows);
     scheduleRefresh(url);
   }catch(e){
-    setSt('err','Failed: '+e.message+'. Use manual paste below.');
+    console.error('Fetch failed:',e.message);
   }
 }
-function scheduleRefresh(url){
+function scheduleRefresh(url=APPS_SCRIPT_URL){
   if(timer)clearInterval(timer);
   timer=setInterval(async()=>{
     try{const r=await fetch(url,{mode:'cors',cache:'no-cache'});
@@ -660,7 +621,7 @@ function exportCSV(){
   a.download='chw_ops_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
 
-const saved='https://script.google.com/macros/s/AKfycbxQqYU9hSkXj6U10EvUzADDgsg05pNStY7htPCbM68vPb6hE5ztjyCzE2UNzVVTGHDdWQ/exec';
+const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbxQqYU9hSkXj6U10EvUzADDgsg05pNStY7htPCbM68vPb6hE5ztjyCzE2UNzVVTGHDdWQ/exec';
 fetchUrl();
 </script>
 </body>
