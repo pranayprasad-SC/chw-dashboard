@@ -68,8 +68,21 @@ textarea:focus{border-color:#111}
 .sf{height:100%;border-radius:5px;transition:width .7s}
 .sv{font-size:11px;font-weight:700;min-width:34px;text-align:right}
 .sbk{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;background:#FEE2E2;color:#991B1B;flex-shrink:0}
-.empty{text-align:center;padding:28px 16px;color:#BBB;font-size:12px}
-</style>
+.pk{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.pc{border-radius:14px;padding:20px 22px;position:relative;overflow:hidden;transition:box-shadow .15s}
+.pc:hover{box-shadow:0 6px 24px rgba(0,0,0,.10)}
+.pc-unp{background:#1E293B;border:1px solid #1E293B}
+.pc-unb{background:#7C3AED;border:1px solid #7C3AED}
+.pc-ovd{background:#DC2626;border:1px solid #DC2626}
+.pc-exp{background:#0F2744;border:2px solid #3B82F6}
+.pc-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+.pc-value{font-size:32px;font-weight:800;color:#fff;line-height:1;letter-spacing:-1px;margin-bottom:6px}
+.pc-sub{font-size:10px;color:rgba(255,255,255,.45)}
+.pc-blank{font-size:20px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:-.5px}
+.pc-badge{display:inline-flex;font-size:9px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.85);margin-top:8px}
+@media(max-width:880px){.pk{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){.pk{grid-template-columns:1fr}}
+
 </head>
 <body>
 
@@ -123,6 +136,29 @@ textarea:focus{border-color:#111}
 </div>
 
 <div class="content">
+  <div class="pk" id="pk">
+    <div class="pc pc-unp">
+      <div class="pc-label">Unprovisioned</div>
+      <div class="pc-blank" id="pv1">— Coming soon</div>
+      <div class="pc-sub">Formula to be configured</div>
+    </div>
+    <div class="pc pc-unb">
+      <div class="pc-label">Total Unbilled</div>
+      <div class="pc-value" id="pv2">—</div>
+      <div class="pc-sub" id="ps2">Pending invoice exposure</div>
+    </div>
+    <div class="pc pc-ovd">
+      <div class="pc-label">Overdue</div>
+      <div class="pc-blank" id="pv3">— Coming soon</div>
+      <div class="pc-sub">Formula to be configured</div>
+    </div>
+    <div class="pc pc-exp">
+      <div class="pc-label">Total Exposure</div>
+      <div class="pc-value" id="pv4">—</div>
+      <div class="pc-sub">Sum of Unprovisioned + Unbilled + Overdue</div>
+      <div class="pc-badge">⚠ Exposure</div>
+    </div>
+  </div>
   <div class="sh">
     <span class="stt">Executive summary</span>
     <span class="stn" id="dn">Connect your sheet above</span>
@@ -130,7 +166,7 @@ textarea:focus{border-color:#111}
   <div class="kg" id="kg"><div class="empty" style="grid-column:1/-1">No data loaded</div></div>
   <div class="r2">
     <div class="card">
-      <div class="ct">Average invoicing TAT by step</div>
+      <div class="ct">Invoicing TAT per stage</div>
       <div class="cs">Weighted avg · P90 capped · bottleneck highlighted</div>
       <div class="sl" id="sl"><div class="empty">No data</div></div>
     </div>
@@ -428,6 +464,12 @@ function render(data){
   }
   const m=compute(data);
 
+  /* Prominent summary cards */
+  document.getElementById('pv2').textContent=fmtINR(m.unbilled);
+  document.getElementById('ps2').textContent='Pending invoice exposure · '+m.pending.length+' records';
+  /* Total Exposure = Unbilled only (Unprovisioned + Overdue are blank/TBD) */
+  document.getElementById('pv4').textContent=fmtINR(m.unbilled);
+
   /* KPI Cards */
   document.getElementById('kg').innerHTML=[
     {l:'Total provisioned',v:fmtINR(m.totalProv),s:'SUM(Col I)',b:null,
@@ -437,8 +479,6 @@ function render(data){
     {l:'Invoicing TAT',v:m.wTat?m.wTat+'d':'—',s:m.tatCount+' invoices · P90 capped',
      b:m.wTat>45?{t:'High',c:'br'}:m.wTat>20?{t:'Monitor',c:'ba'}:{t:'On track',c:'bg'},
      tip:'Weighted avg of (Col U − Col K) where Col U not blank · P90 normalised'},
-    {l:'Pending >30 days',v:fmtINR(m.pend30val),s:m.pend30cnt+' invoices overdue',b:{t:'Escalate',c:'br'},
-     tip:'Col I > 0 AND Col U blank AND (Today − Col K) > 30'},
     {l:'Overdues',v:'—',s:'Formula coming soon',b:null,
      tip:'Overdues — formula to be configured'},
   ].map(k=>`<div class="kc" title="${k.tip}">
