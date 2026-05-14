@@ -75,7 +75,7 @@ textarea:focus{border-color:#111}
 
 <div class="topbar">
   <div>
-    <div class="brand">Revenue Operations Intelligence</div>
+    <div class="brand">Revenue Operations Intelligence (May 1st Onwards)</div>
     <div class="brand-sub">Tata 1mg Healthcare · CHW Billing · <span id="rc">—</span> · <span id="td"></span></div>
   </div>
   <div class="tr">
@@ -439,9 +439,8 @@ function render(data){
      tip:'Weighted avg of (Col U − Col K) where Col U not blank · P90 normalised'},
     {l:'Pending >30 days',v:fmtINR(m.pend30val),s:m.pend30cnt+' invoices overdue',b:{t:'Escalate',c:'br'},
      tip:'Col I > 0 AND Col U blank AND (Today − Col K) > 30'},
-    {l:'Submission rate',v:m.subRate+'%',s:m.submitted.length+' of '+m.valid.length,
-     b:m.subRate>=80?{t:'Healthy',c:'bg'}:m.subRate>=60?{t:'Monitor',c:'ba'}:{t:'Low',c:'br'},
-     tip:'Rows with Col U not blank ÷ rows with Col I > 0'},
+    {l:'Overdues',v:'—',s:'Formula coming soon',b:null,
+     tip:'Overdues — formula to be configured'},
   ].map(k=>`<div class="kc" title="${k.tip}">
     <div class="kl"><span>${k.l}</span><span style="font-size:11px;color:#CCC">ⓘ</span></div>
     <div class="kv">${k.v}</div>
